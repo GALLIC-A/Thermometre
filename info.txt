@@ -1,3 +1,3 @@
 Accès au moniteur : sudo ~/.platformio/penv/bin/platformio device monitor --port /dev/ttyUSB0 --baud 115200 
 Déploiement du firmware : sudo ~/.platformio/penv/bin/platformio run --target upload --upload-port /dev/ttyUSB0
-
+Détecter la carte : ls /dev/ttyUSB*
