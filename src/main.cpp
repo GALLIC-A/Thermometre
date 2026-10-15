@@ -1,17 +1,3 @@
-// // #include <Arduino.h>
-
-// // void setup() {
-// //   Serial.begin(115200);
-// //   delay(1000);
-// //   Serial.println("Bonjour");
-// // }
-
-// // void loop() {
-// //   Serial.println("a");
-// //   delay(2000);
-// // }
-
-
 // CODE CHOPPÉ SUR https://www.doritique.fr/Articles/View_Article.php?num_article=95
 
 /////// POUR CONNAÎTRE LES ADRESSES DE LA SONDE :
@@ -75,92 +61,39 @@
 //   delay(5000);
 // }
 
-
-////////////////// UNE FOIS QU'ON CONNAIT LES ADRESSES DE LA SONDE ON PEUT LIRE, C'EST CE QUE FAIT LE CODE CI DESSOUS
-
-
-/*********
-  Rui Santos
-  Complete project details at http://randomnerdtutorials.com  
-  Based on the Dallas Temperature Library example
-*********/
-
-// #include "SensorReader.h"
-
  
-// // Setup a oneWire instance to communicate with any OneWire devices (not just Maxim/Dallas temperature ICs)
-// OneWire oneWire(ONE_WIRE_BUS);
- 
-// // Pass our oneWire reference to Dallas Temperature. 
-// DallasTemperature sensors(&oneWire);
- 
-// // Tableaux contenant l'adresse de chaque sonde OneWire | arrays to hold device addresses
-// DeviceAddress insideThermometer = { 0x28,  0xBA,  0xFE,  0x87,  0x0,  0x0,  0x0,  0x8D };
-
- 
-// void setup() {
-//   Serial.begin(115200);
-  
-//   // Start up the library
-//   sensors.begin();
- 
-//   // locate devices on the bus
-//   Serial.print("Locating devices...");
-//   Serial.print("Found ");
-//   Serial.print(sensors.getDeviceCount(), DEC);
-//   Serial.println(" devices.");
- 
-//   // report parasite power requirements
-//   Serial.print("Parasite power is: "); 
-//   if (sensors.isParasitePowerMode()) Serial.println("ON");
-//   else Serial.println("OFF");
- 
-//   // Vérifie sir les capteurs sont connectés | check and report if sensors are conneted 
-//   if (!sensors.getAddress(insideThermometer, 0)) Serial.println("Unable to find address for Device 0"); 
- 
-//   // set the resolution to 9 bit per device
-//   sensors.setResolution(insideThermometer, TEMPERATURE_PRECISION);
- 
-//   // On vérifie que le capteur st correctement configuré | Check that ensor is correctly configured
-//   Serial.print("Device 0 Resolution: ");
-//   Serial.print(sensors.getResolution(insideThermometer), DEC); 
-//   Serial.println();
-// }
- 
-// void printTemperature(String label, DeviceAddress deviceAddress){
-//   float tempC = sensors.getTempC(deviceAddress);
-//   Serial.print(label);
-//   if (tempC == -127.00) {
-//     Serial.print("Error getting temperature");
-//   } else {
-//     Serial.print(" Temp C: ");
-//     Serial.print(tempC);
-//     Serial.print(" Temp F: ");
-//     Serial.println(DallasTemperature::toFahrenheit(tempC));
-//   }  
-// }
- 
-// void loop() {
-//   // put your main code here, to run repeatedly:
-//   Serial.print("Requesting temperatures...");
-//   sensors.requestTemperatures();
-//   Serial.println("DONE");
- 
-//   // print the device information
-//   printTemperature("Inside : ", insideThermometer);
-  
-//   delay(5000);
-// }
 
 #include <Arduino.h>
 #include "SensorReader.h"
+#include <WiFi.h>
+#include "config.h"
 SensorReader sensorReader;
+void connecterWiFi();
 void setup() {
   Serial.begin(115200);
   sensorReader.begin();
+  connecterWiFi();  
 }
 void loop() {
   float temperature=sensorReader.readTemperature();
-  Serial.println(temperature);
+  if(temperature==-127){
+    Serial.println("Une erreur est survenue lors de la lecture de la sonde.");
+  }else{
+    Serial.print(temperature);
+    Serial.println(" °C");
+  }
+  Serial.print("@IP : ");
+  Serial.println(WiFi.localIP());
   delay(5000);//lecture toutes les 5 secondes
+}
+void connecterWiFi(){
+  Serial.println("Tentative connexion Wi-Fi");
+  WiFi.begin(ssid, password);
+  while(WiFi.status() != WL_CONNECTED){
+    delay(500);
+    Serial.println(".");
+  }
+  Serial.println("Connexion Wi-Fi ok");
+  Serial.print("ipaddr : ");
+  Serial.println(WiFi.localIP());
 }
