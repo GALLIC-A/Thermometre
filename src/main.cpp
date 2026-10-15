@@ -68,23 +68,70 @@
 #include <WiFi.h>
 #include "config.h"
 SensorReader sensorReader;
+WiFiServer server(80);
+String header;
 void connecterWiFi();
 void setup() {
   Serial.begin(115200);
   sensorReader.begin();
-  connecterWiFi();  
+  connecterWiFi();
+  server.begin();
 }
 void loop() {
   float temperature=sensorReader.readTemperature();
-  if(temperature==-127){
-    Serial.println("Une erreur est survenue lors de la lecture de la sonde.");
-  }else{
-    Serial.print(temperature);
-    Serial.println(" °C");
+  // ex: https://medium.com/@alexandrangeline/building-an-esp32-web-server-amidst-the-coronavirus-61045a942472
+  WiFiClient client = server.available();
+  if(client){
+    Serial.println("Nouveau client");
+    String currentLine;
+    while(client.connected()){
+      if(client.available()){
+        char c=client.read();
+        Serial.write(c);
+        header+=c;
+        if(c=='\n'){
+          if(currentLine.length()==0){
+            client.println("HTTP/1.1 200 OK");
+            client.println("Content-Type:application/json;charset=utf-8");
+            client.println("Connection: close");
+            client.println();
+            if(header.indexOf("GET /temperature/")>=0){//système de routing
+              Serial.println("Ok");
+            }
+            if(temperature==-127){
+              client.print("{\"error\":\"erreur lecture\"}");
+            }else{
+              client.print("{\"temperature\":");
+              client.print(temperature);
+              client.print(",\"unite\":\"C°\"}");
+            }
+            client.println();
+            break;
+          } else {
+            currentLine="";
+          }
+        }else if(c!='\r'){
+            currentLine+=c;
+        }
+      }
+    }
+
+    header="";
+    //fermture connexion
+    client.stop();
+    Serial.println("Déconnexion du client");
+    Serial.println("");
   }
-  Serial.print("@IP : ");
-  Serial.println(WiFi.localIP());
-  delay(5000);//lecture toutes les 5 secondes
+  // float temperature=sensorReader.readTemperature();
+  // if(temperature==-127){
+  //   Serial.println("Une erreur est survenue lors de la lecture de la sonde.");
+  // }else{
+  //   Serial.print(temperature);
+  //   Serial.println(" °C");
+  // }
+  // Serial.print("@IP : ");
+  // Serial.println(WiFi.localIP());
+  // delay(5000);//lecture toutes les 5 secondes
 }
 void connecterWiFi(){
   Serial.println("Tentative connexion Wi-Fi");
