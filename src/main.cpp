@@ -91,21 +91,35 @@ void loop() {
         header+=c;
         if(c=='\n'){
           if(currentLine.length()==0){
-            client.println("HTTP/1.1 200 OK");
-            client.println("Content-Type:application/json;charset=utf-8");
-            client.println("Connection: close");
-            client.println();
-            if(header.indexOf("GET /temperature/")>=0){//système de routing
-              Serial.println("Ok");
+            if(header.indexOf("GET /api")>=0){
+              client.println("HTTP/1.1 200 OK");
+              client.println("Content-Type:application/json;charset=utf-8");
+              client.println("Connection: close");
+              client.println();
+              if(temperature==-127){
+                client.print("{\"error\":\"erreur lecture\"}");
+              }else{
+                client.print("{\"temperature\":");
+                client.print(temperature);
+                client.print(",\"unite\":\"C°\"}");
+              }
+              client.println();
+            } else {
+              client.println("HTTP/1.1 200 OK");
+              client.println("Content-Type:text/html;charset=utf-8");
+              client.println("Connection: close");
+              client.println();
+              client.println("<!DOCTYPE html><html><head><title>Super thermomètre</title><style>html{background-color:red;color:yellow;}</style></head><body><h1>");
+              if(temperature==-127){
+                client.println("Erreur de lecture :(");
+              }else{
+                client.print(temperature);
+                client.println(" C°");
+              }
+              client.println("</h1></body></html>");
+              client.println();
+            
             }
-            if(temperature==-127){
-              client.print("{\"error\":\"erreur lecture\"}");
-            }else{
-              client.print("{\"temperature\":");
-              client.print(temperature);
-              client.print(",\"unite\":\"C°\"}");
-            }
-            client.println();
             break;
           } else {
             currentLine="";
