@@ -12,8 +12,8 @@ void HttpServer::gererClient() {
         Serial.println("Nouveau client");
         String currentLine;
         String requestLine;
+        // le while lit un flux de caractères (envoyé par le navigatuer), c'est pour ça qu'on regarde si c'est une fin de ligne ou si c'est un retour chariot
         while(client.connected()){
-            // le while lit un flux de caractères (envoyé par le navigatuer), c'est pour ça qu'on regarde si c'est une fin de ligne ou si c'est un retour chariot
           if(client.available()){
             char c=client.read();
             if(c=='\n'){
